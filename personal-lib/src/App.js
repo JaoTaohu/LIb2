@@ -1,8 +1,8 @@
-import { useEffect, useState, useRef } from 'react'
-import { storage } from './firebase'
-import { ref, uploadBytes, listAll, getDownloadURL, deleteObject } from 'firebase/storage'
-import { v4 } from 'uuid'
-import './App.css'
+import { useEffect, useState, useRef } from 'react';
+import { storage } from './firebase';
+import { ref, uploadBytes, listAll, getDownloadURL, deleteObject } from 'firebase/storage';
+import { v4 } from 'uuid';
+import './App.css';
 
 function App() {
   const [img, setImg] = useState(null);
@@ -14,37 +14,37 @@ function App() {
     const imgRef = ref(storage, `pony/${img.name + v4()}`);
     uploadBytes(imgRef, img).then((snapshot) => {
       getDownloadURL(snapshot.ref).then((url) => {
-        setImgList((prev) => [...prev, url]);
-        imgListRef.current.push({ url, ref: imgRef });
+        imgListRef.current.unshift(url); // Add the new image to the beginning of the list
+        setImgList([...imgListRef.current]); // Update the state with a new copy of the list
       });
     });
     setImg(null);
   };
 
   useEffect(() => {
-    listAll(ref(storage, `pony/`)).then((response) => {
-      const promises = response.items.map((item) => {
-        return getDownloadURL(item);
-      });
-      Promise.all(promises).then((urls) => {
-        imgListRef.current = response.items.map((item) => ({ url: urls.shift(), ref: item }));
-        setImgList(imgListRef.current.map(({ url }) => url));
-      });
-    });
+    const imagesRef = ref(storage, 'pony/');
+    listAll(imagesRef)
+      .then((res) => Promise.all(res.items.map((item) => getDownloadURL(item))))
+      .then((urls) => {
+        const sortedUrls = urls.sort((url1, url2) => {
+          // Sort in descending order of upload time
+          const index1 = url1.indexOf('?time=');
+          const index2 = url2.indexOf('?time=');
+          const time1 = parseInt(url1.substring(index1 + 6), 10);
+          const time2 = parseInt(url2.substring(index2 + 6), 10);
+          return time2 - time1;
+        });
+        imgListRef.current = sortedUrls; // Set the initial state of the list to the sorted URLs
+        setImgList(sortedUrls);
+      })
+      .catch((error) => console.log(error));
   }, []);
 
-  const setImgLis = (urls) => {
-    if (imgListRef.current.length !== urls.length) {
-      imgListRef.current = urls.map((url) => ({ url, ref: ref(storage, url) }));
-      setImgList(urls);
-    }
-  };
-
   const deleteImage = (url) => {
-    const { ref: imgRef } = imgListRef.current.find(({ url: u }) => u === url);
+    const imgRef = ref(storage, url);
     deleteObject(imgRef).then(() => {
       const updatedImgList = imgList.filter((imgUrl) => imgUrl !== url);
-      imgListRef.current = imgListRef.current.filter(({ url: u }) => u !== url);
+      imgListRef.current = updatedImgList;
       setImgList(updatedImgList);
     });
   };
@@ -56,7 +56,7 @@ function App() {
       {imgList.map((url) => {
         return (
           <div key={url}>
-            <img src={url} />
+            <img src={url} style={{ maxWidth: '40%', height: 'auto' }} />
             <button onClick={() => deleteImage(url)}>Delete</button>
           </div>
         );
