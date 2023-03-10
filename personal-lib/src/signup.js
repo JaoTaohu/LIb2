@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { redirect } from "react-router-dom";
+import { redirect, Link } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./firebase";
 import Upload from "./upload";
@@ -27,6 +27,7 @@ function Signup() {
   }
 
   return (
+    <div>
     <form onSubmit={handleSignup}>
     <div>
       <h2>Sign Up</h2>     
@@ -37,6 +38,8 @@ function Signup() {
         <button type='submit' >Sign Up</button>        
     </div>
     </form>
+    <p> have an account? <Link to="/login">Sign in</Link></p>
+    </div>
   );
 }
 

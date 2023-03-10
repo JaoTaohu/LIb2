@@ -1,22 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import SignUp from './signup';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import Upload from './upload';
+import Login from './Login';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <BrowserRouter>
+
+function AppWrapper() {
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  const handleLogin = () => {
+    setLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    setLoggedIn(false);
+  };
+
+  return (
+    <BrowserRouter>
       <Routes>
-        <Route path="Upload" element={<Upload/>}/>
-        <Route path="Signup" element={<SignUp/>}/>
+        <Route path="/upload" element={loggedIn ? <Upload /> : <Navigate to="/login" />} />
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        <Route path="/signup" element={<SignUp/>}/>
       </Routes>
-  </BrowserRouter>,
-  document.getElementById('root')
-);
+    </BrowserRouter>
+  );
+}
+
+root.render(<AppWrapper />, document.getElementById('root'));
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
