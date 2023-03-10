@@ -1,13 +1,17 @@
-import { useEffect, useState, useRef } from 'react';
-import { storage } from './firebase';
+import { useContext, useRef, useEffect, useState } from 'react';
+import { AuthContext } from './index.js';
+import { auth, storage } from './firebase';
 import { ref, uploadBytes, listAll, getDownloadURL, deleteObject } from 'firebase/storage';
 import { v4 } from 'uuid';
-
+import { signOut } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 
 function Upload() {
+  const { handleLogout } = useContext(AuthContext);
   const [img, setImg] = useState(null);
   const [imgList, setImgList] = useState([]);
   const imgListRef = useRef([]);
+  const navigate = useNavigate();
 
   const uploadImage = () => {
     if (img == null) return;
@@ -61,6 +65,7 @@ function Upload() {
           </div>
         );
       })}
+      <button onClick={()=>signOut(auth).then(handleLogout).then(() => navigate('/login'))}>Logout</button>
     </div>
   );
 }

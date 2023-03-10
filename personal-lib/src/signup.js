@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { redirect, Link } from "react-router-dom";
+import { redirect, Link, Navigate, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./firebase";
-import Upload from "./upload";
+
 
 
 function Signup() {
@@ -10,21 +10,20 @@ function Signup() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [redirectToUpload, setRedirectToUpload] = useState(false);
+  const navigate = useNavigate();
 
   const handleSignup = async (event) => {
     event.preventDefault();
     setError(null);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      setRedirectToUpload(true); // set state to redirect to upload page
+      setRedirectToUpload(true);
+      navigate("/upload")  // set state to redirect to upload page
     } catch (error) {
       setError(error.message);
     }
   };
 
-  if (redirectToUpload) {
-    return redirect("/upload") // redirect to upload page
-  }
 
   return (
     <div>

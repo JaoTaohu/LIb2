@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, createContext } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
 import SignUp from './signup';
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import Upload from './upload';
 import Login from './Login';
+
+// Create a new context for managing the user authentication state
+export const AuthContext = createContext();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -21,14 +23,41 @@ function AppWrapper() {
     setLoggedIn(false);
   };
 
+  // Pass the authentication state and methods to the context provider
   return (
-    <BrowserRouter>
+    <AuthContext.Provider value={{ loggedIn, handleLogin, handleLogout }}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/upload" element={<Upload />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthContext.Provider>
+  );
+}
+
+function App() {
+  // Get the authentication state and methods from the context provider
+  const { loggedIn, handleLogin, handleLogout } = useContext(AuthContext);
+
+  return (
+    <div>
+      <nav>
+        {loggedIn ? (
+          <button onClick={handleLogout}>Logout</button>
+        ) : (
+          <>
+            <Navigate to="/login" />
+          </>
+        )}
+      </nav>
       <Routes>
         <Route path="/upload" element={loggedIn ? <Upload /> : <Navigate to="/login" />} />
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route path="/signup" element={<SignUp/>}/>
+        <Route path="/signup" element={<SignUp />} />
       </Routes>
-    </BrowserRouter>
+    </div>
   );
 }
 
